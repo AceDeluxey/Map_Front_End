@@ -143,6 +143,17 @@
 				path: '/pages/tabBar/component/component'
 			}
 		},
+		onShow(){
+			uni.login({
+			  provider: 'weixin', //使用微信登录
+			  success: function (loginRes) {
+			    console.log(loginRes);
+			  }
+			});
+			// this.weixinLogin()
+			// this.getUserInfo()
+			// this.getLogin()
+		},
 		onNavigationBarButtonTap(e) {
 			uni.navigateTo({
 				url: '/pages/about/about'
@@ -206,6 +217,84 @@
 						})
 					}
 				}
+			},
+				getUserInfo() {
+					return new Promise((resolve, reject) => {
+						uni.getUserProfile({
+							lang: 'zh_CN',
+							desc: '用户登录', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，
+							success: (res) => {
+								console.log(res, 'resss')
+								resolve(res.userInfo)
+							},
+							fail: (err) => {
+								reject(err)
+							}
+						})
+					})
+				},
+						
+				getLogin() {
+					return new Promise((resolve, reject) => {
+						uni.login({
+							success(res) {
+								console.log(res, 'res')
+								resolve(res)
+							},
+							fail: (err) => {
+								console.log(err, 'logoer')
+								reject(err)
+							}
+						})
+					})
+				},
+			 
+			   weixinLogin() {
+					let that = this;
+					uni.getProvider({
+						service: 'oauth',
+						success: function(res) {
+						   //支持微信、qq和微博等
+						   if (~res.provider.indexOf('weixin')) {
+								console.log(res, 'ress')
+								let userInfo = that.getUserInfo();
+								let loginRes = that.getLogin();
+								Promise.all([userInfo, loginRes]).then((result) =>{
+									
+									let userInfo = result[0];
+									let loginRes = result[1];
+									console.log(userInfo)
+									console.log(loginRes)
+									let access_token = loginRes.authResult.access_token;
+									let openid = loginRes.authResult.openid;
+									let data = Object.assign(loginRes.authResult, userInfo);
+									that.$store.dispatch('Login', {
+											type: 'weixin',
+											url: that.url,
+											data
+									}).then(r => {
+											if (r == 'ok') {
+												uni.hideLoading()
+											}
+											}).catch(err => {
+												uni.hideLoading();
+												uni.showToast({
+												icon: 'none',
+												title: err
+											})
+										})
+									})
+			 
+									}
+								},
+					   fail: function(err) {
+							uni.hideLoading();
+							uni.showToast({
+							icon: 'none',
+							title: err
+							})
+						}
+				})
 			}
 		}
 	}

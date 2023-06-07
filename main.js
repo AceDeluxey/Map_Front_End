@@ -14,7 +14,20 @@ Vue.prototype.$backgroundAudioData = {
 App.mpType = 'app'
 const app = new Vue({
 	store,
-	...App
+	...App,
+	methods: {
+	    $onLaunch() {
+	      uni.login({
+	        provider: 'weixin',
+	        success: function(loginRes) {
+	          console.log(loginRes.authResult);
+	        }
+	      });
+	    },
+	  },
+	onLaunch() {
+	  this.$onLaunch();
+	}
 })
 app.$mount()
 // #endif
@@ -37,3 +50,4 @@ export function createApp() {
 	}
 }
 // #endif
+
